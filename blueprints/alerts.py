@@ -1,17 +1,19 @@
-from flask import Blueprint, request, jsonify
+from flask import  request, jsonify
 from db import db
 from models.alert import AlertModel
 from schemas.schemas import AlertSchema
+from flask_smorest import Blueprint, abort
+
+blp = Blueprint("alerts", __name__, description="Opertations on alerts")
 
 
-alert_blueprint = Blueprint('alerts', __name__)
 
-@alert_blueprint.route('/alerts', methods=['GET'])
+@blp.route('/alerts', methods=['GET'])
 def get_alerts():
     alerts = AlertModel.query.all()
     return jsonify([alert.serialize() for alert in alerts]), 200
 
-@alert_blueprint.route('/alerts/<int:id>', methods=['GET'])
+@blp.route('/alerts/<int:id>', methods=['GET'])
 def get_alert(id):
     alert = AlertModel.query.get(id)
     if alert:
@@ -19,7 +21,7 @@ def get_alert(id):
     else:
         return jsonify({"message": "Alert not found"}), 404
 
-@alert_blueprint.route('/alerts', methods=['POST'])
+@blp.route('/alerts', methods=['POST'])
 def create_alert():
     data = request.get_json()
     new_alert = AlertModel(
@@ -31,7 +33,7 @@ def create_alert():
     db.session.commit()
     return jsonify(new_alert.serialize()), 201
 
-@alert_blueprint.route('/alerts/<int:id>', methods=['DELETE'])
+@blp.route('/alerts/<int:id>', methods=['DELETE'])
 def delete_alert(id):
     alert = AlertModel.query.get(id)
     if alert:
@@ -41,7 +43,7 @@ def delete_alert(id):
     else:
         return jsonify({"message": "Alert not found"}), 404
 
-@alert_blueprint.route('/alerts/<int:id>', methods=['PUT'])
+@blp.route('/alerts/<int:id>', methods=['PUT'])
 def update_alert(id):
     data = request.get_json()
     alert = AlertModel.query.get(id)

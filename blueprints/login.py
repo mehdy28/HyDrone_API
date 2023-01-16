@@ -1,43 +1,89 @@
-import jwt
-from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify
-from werkzeug.security import check_password_hash
 from models import UserModel
+from flask import Flask, request, jsonify, make_response
 from schemas.schemas import UserSchema
 from db import db
+import jwt
+from flask.views import MethodView
+from flask_smorest import Blueprint, abort
+from functools import wraps
+import datetime
+
 
 
 # Create a blueprint for the login route
-login_bp = Blueprint('login', __name__)
+blp = Blueprint("login", __name__, description="Login")
 
-@login_bp.route('/login', methods=['POST'])
+
+from flask import  request, jsonify
+from werkzeug.security import check_password_hash , generate_password_hash
+
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 401
+
+        try: 
+            data = jwt.decode(token, 'SECRET_KEY')
+            current_user = UserModel.query.filter_by(public_id=data['public_id']).first()
+        except:
+            return jsonify({'message' : 'Token is invalid!'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+@blp.route('/user/<public_id>', methods=['DELETE'])
+@token_required
+def delete_user(current_user, public_id):
+    if not current_user.admin:
+        return jsonify({'message' : 'Cannot perform that function!'})
+
+    user = UserModel.query.filter_by(public_id=public_id).first()
+
+    if not user:
+        return jsonify({'message' : 'No user found!'})
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({'message' : 'The user has been deleted!'})
+
+@blp.route('/login', methods=['POST'])
 def login():
+    auth = request.authorization
+
+    if not auth or not auth.username or not auth.password:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    user = UserModel.query.filter_by(name=auth.username).first()
+
+    if not user:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    if check_password_hash(user.password, auth.password):
+        token = jwt.encode({'public_id' : user.public_id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, 'SECRET_KEY')
+
+        return jsonify({'token' : token.decode('UTF-8')})
+
+    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+@blp.route('/register', methods=['POST'])
+def register():
     # Retrieve the user's information from the request
     data = request.get_json()
-    email = data.get('email')
-    name = data.get('name')
-    password = data.get('password')
+    hashed_password = generate_password_hash(data['password'], method='sha256')
+    new_user = UserModel(username=data['username'], email=data['email'], password=hashed_password)
 
-    # Check if the user provided an email or a name
-    if email:
-        user = UserModel.query.filter_by(email=email).first()
-    elif name:
-        user = UserModel.query.filter_by(name=name).first()
-    else:
-        return {'message': 'Please provide an email or a name.'}, 401
+    # Add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
 
-    # Check if the user exists and the password is correct
-    if not user or not check_password_hash(user.password, password):
-        return {'message': 'Could not verify'}, 401
-
-    # Generate an access token and a refresh token for the user
-    expiry = datetime.utcnow() + timedelta(minutes=30)
-    access_token = jwt.encode({'user_id': user.id, 'exp': expiry}, "SECRET_KEY", algorithm='HS256')
-    expiry = datetime.utcnow() + timedelta(hours=2)
-    refresh_token = jwt.encode({'user_id': user.id, 'exp': expiry}, "SECRET_KEY", algorithm='HS256')
-
-    # Return the user's information and the tokens
-    return {'user': {'id': user.id, 'name': user.name, 'email': user.email}, 'access_token': access_token.decode('utf-8'), 'refresh_token': refresh_token.decode('utf-8')}, 200
-
-
-
+    return {'message': 'New user created.'}, 201

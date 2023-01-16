@@ -4,7 +4,7 @@ from marshmallow import Schema, fields
 class UserSchema(Schema):
     id = fields.Integer()
     public_id = fields.String()
-    name = fields.String()
+    username = fields.String()
     email = fields.String()
     password = fields.String()
     admin = fields.Boolean()

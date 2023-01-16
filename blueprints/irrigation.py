@@ -1,20 +1,20 @@
-from flask import Blueprint, request, jsonify
+from flask import  request, jsonify
 from db import db
 from models.irrigation import IrrigationModel,IrrigationScheduleModel,IrrigationSystemModel
 from schemas.schemas import IrrigationScheduleSchema,IrrigationSchema,IrrigationSystemSchema
 import datetime
+from flask.views import MethodView
+from flask_smorest import Blueprint, abort
+
+blp = Blueprint("irrigation", __name__, description="Opertations on irrigation")
 
 
-irrigation_blueprint = Blueprint('irrigation', __name__)
-irrigation_systems_blueprint = Blueprint('irrigation_systems', __name__)
-irrigation_schedules_blueprint = Blueprint('irrigation_schedules', __name__)
-
-@irrigation_blueprint.route('/irrigation', methods=['GET'])
+@blp.route('/irrigation', methods=['GET'])
 def get_irrigation():
     irrigation = IrrigationModel.query.all()
     return jsonify([irrigation.to_json() for irrigation in irrigation])
 
-@irrigation_blueprint.route('/irrigation', methods=['POST'])
+@blp.route('/irrigation', methods=['POST'])
 def create_irrigation():
     data = request.get_json()
     new_irrigation = IrrigationModel(
@@ -26,12 +26,12 @@ def create_irrigation():
     db.session.commit()
     return jsonify(new_irrigation.to_json())
 
-@irrigation_blueprint.route('/irrigation/<int:id>', methods=['GET'])
+@blp.route('/irrigation/<int:id>', methods=['GET'])
 def get_irrigation_by_id(id):
     irrigation = IrrigationModel.query.get(id)
     return jsonify(irrigation.to_json())
 
-@irrigation_blueprint.route('/irrigation/<int:id>', methods=['PUT'])
+@blp.route('/irrigation/<int:id>', methods=['PUT'])
 def update_irrigation_by_id(id):
     data = request.get_json()
     irrigation = IrrigationModel.query.get(id)
@@ -41,7 +41,7 @@ def update_irrigation_by_id(id):
     db.session.commit()
     return jsonify(irrigation.to_json())
 
-@irrigation_blueprint.route('/irrigation/<int:id>', methods=['DELETE'])
+@blp.route('/irrigation/<int:id>', methods=['DELETE'])
 def delete_irrigation_by_id(id):
     irrigation = IrrigationModel.query.get(id)
     db.session.delete(irrigation)
@@ -49,12 +49,12 @@ def delete_irrigation_by_id(id):
     return jsonify({'message': 'Irrigation has been deleted'})
 
 
-@irrigation_systems_blueprint.route('/irrigation_systems', methods=['GET'])
+@blp.route('/irrigation_systems', methods=['GET'])
 def get_irrigation_systems():
     irrigation_systems = IrrigationSystemModel.query.all()
     return jsonify([irrigation_system.to_json() for irrigation_system in irrigation_systems])
 
-@irrigation_systems_blueprint.route('/irrigation_systems', methods=['POST'])
+@blp.route('/irrigation_systems', methods=['POST'])
 def create_irrigation_system():
     data = request.get_json()
     new_irrigation_system = IrrigationSystemModel(
@@ -67,12 +67,12 @@ def create_irrigation_system():
     db.session.commit()
     return jsonify(new_irrigation_system.to_json())
 
-@irrigation_systems_blueprint.route('/irrigation_systems/<int:id>', methods=['GET'])
+@blp.route('/irrigation_systems/<int:id>', methods=['GET'])
 def get_irrigation_system_by_id(id):
     irrigation_system = IrrigationSystemModel.query.get(id)
     return jsonify(irrigation_system.to_json())
 
-@irrigation_systems_blueprint.route('/irrigation_systems/<int:id>', methods=['PUT'])
+@blp.route('/irrigation_systems/<int:id>', methods=['PUT'])
 def update_irrigation_system_by_id(id):
     data = request.get_json()
     irrigation_system = IrrigationSystemModel.query.get(id)
@@ -83,21 +83,21 @@ def update_irrigation_system_by_id(id):
     db.session.commit()
     return jsonify(irrigation_system.to_json())
 
-@irrigation_systems_blueprint.route('/irrigation_systems/<int:id>', methods=['DELETE'])
+@blp.route('/irrigation_systems/<int:id>', methods=['DELETE'])
 def delete_irrigation_system_by_id(id):
     irrigation_system = IrrigationSystemModel.query.get(id)
     db.session.delete(irrigation_system)
     db.session.commit()
     return jsonify({'message': 'Irrigation system has been deleted'})
 
-@irrigation_schedules_blueprint.route('/irrigation_schedules', methods=['GET'])
+@blp.route('/irrigation_schedules', methods=['GET'])
 def get_irrigation_schedules():
     irrigation_schedules = IrrigationScheduleModel.query.all()
     return jsonify([irrigation_schedule.to_json() for irrigation_schedule in irrigation_schedules])
 
 
     
-@irrigation_schedules_blueprint.route('/irrigation_schedules', methods=['POST'])
+@blp.route('/irrigation_schedules', methods=['POST'])
 def create_irrigation_schedule():
     data = request.get_json()
     new_irrigation_schedule = IrrigationScheduleModel(
@@ -112,12 +112,12 @@ def create_irrigation_schedule():
     db.session.commit()
     return jsonify(new_irrigation_schedule.to_json())
 
-@irrigation_schedules_blueprint.route('/irrigation_schedules/<int:id>', methods=['GET'])
+@blp.route('/irrigation_schedules/<int:id>', methods=['GET'])
 def get_irrigation_schedule_by_id(id):
     irrigation_schedule = IrrigationScheduleModel.query.get(id)
     return jsonify(irrigation_schedule.to_json())
 
-@irrigation_schedules_blueprint.route('/irrigation_schedules/<int:id>', methods=['PUT'])
+@blp.route('/irrigation_schedules/<int:id>', methods=['PUT'])
 def update_irrigation_schedule_by_id(id):
     data = request.get_json()
     irrigation_schedule = IrrigationScheduleModel.query.get(id)
@@ -132,7 +132,7 @@ def update_irrigation_schedule_by_id(id):
 
 
 
-@irrigation_schedules_blueprint.route('/irrigation_schedules/<int:id>', methods=['DELETE'])
+@blp.route('/irrigation_schedules/<int:id>', methods=['DELETE'])
 def delete_irrigation_schedule_by_id(id):
     irrigation_schedule = IrrigationScheduleModel.query.get(id)
     db.session.delete(irrigation_schedule)

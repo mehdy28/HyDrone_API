@@ -1,11 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import  request, jsonify
 from db import db
+from flask.views import MethodView
+from flask_smorest import Blueprint, abort
 from models.weather import WeatherModel
 from schemas.schemas import WeatherSchema
 
-weather_bp = Blueprint('weather', __name__)
+blp = Blueprint("weather", __name__, description="Operations on weather")
 
-@weather_bp.route('/weather', methods=['GET', 'POST'])
+@blp.route('/weather', methods=['GET', 'POST'])
 def weather():
     if request.method == 'GET':
         weathers = WeatherModel.query.all()
@@ -17,7 +19,7 @@ def weather():
         db.session.commit()
         return jsonify(weather.to_dict()), 201
 
-@weather_bp.route('/weather/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@blp.route('/weather/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def weather_by_id(id):
     weather = WeatherModel.query.get(id)
     if request.method == 'GET':

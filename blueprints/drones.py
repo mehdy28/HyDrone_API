@@ -1,18 +1,19 @@
-from flask import Blueprint, request, jsonify
+from flask import  request, jsonify
 from db import db
 from models.drone import DroneModel, ScheduleModel
 from schemas.schemas import DroneSchema
+from flask_smorest import Blueprint, abort
+
+blp = Blueprint("drones", __name__, description="Opertations on drones")
 
 
-drones_blueprint = Blueprint('drones', __name__)
-schedules_blueprint = Blueprint('schedules', __name__)
 
-@drones_blueprint.route('/drones', methods=['GET'])
+@blp.route('/drones', methods=['GET'])
 def get_drones():
     drones = DroneModel.query.all()
     return jsonify([drone.to_json() for drone in drones])
 
-@drones_blueprint.route('/drones', methods=['POST'])
+@blp.route('/drones', methods=['POST'])
 def create_drone():
     data = request.get_json()
     new_drone = DroneModel(
@@ -25,12 +26,12 @@ def create_drone():
     db.session.commit()
     return jsonify(new_drone.to_json())
 
-@drones_blueprint.route('/drones/<int:id>', methods=['GET'])
+@blp.route('/drones/<int:id>', methods=['GET'])
 def get_drone_by_id(id):
     drone = DroneModel.query.get(id)
     return jsonify(drone.to_json())
 
-@drones_blueprint.route('/drones/<int:id>', methods=['PUT'])
+@blp.route('/drones/<int:id>', methods=['PUT'])
 def update_drone_by_id(id):
     data = request.get_json()
     drone = DroneModel.query.get(id)
@@ -41,7 +42,7 @@ def update_drone_by_id(id):
     db.session.commit()
     return jsonify(drone.to_json())
 
-@drones_blueprint.route('/drones/<int:id>', methods=['DELETE'])
+@blp.route('/drones/<int:id>', methods=['DELETE'])
 def delete_drone_by_id(id):
     drone = DroneModel.query.get(id)
     db.session.delete(drone)
@@ -51,12 +52,12 @@ def delete_drone_by_id(id):
 #################
 #################
 
-@schedules_blueprint.route('/schedules', methods=['GET'])
+@blp.route('/schedules', methods=['GET'])
 def get_schedules():
     schedules = ScheduleModel.query.all()
     return jsonify([schedule.to_json() for schedule in schedules])
 
-@schedules_blueprint.route('/schedules', methods=['POST'])
+@blp.route('/schedules', methods=['POST'])
 def create_schedule():
     data = request.get_json()
     new_schedule = ScheduleModel(
@@ -68,13 +69,13 @@ def create_schedule():
     db.session.commit()
     return jsonify(new_schedule.to_json())
 
-@schedules_blueprint.route('/schedules/<int:id>', methods=['GET'])
+@blp.route('/schedules/<int:id>', methods=['GET'])
 def get_schedule_by_id(id):
     schedule = ScheduleModel.query.get(id)
     return jsonify(schedule.to_json())
 
 
-@schedules_blueprint.route('/schedules/<int:id>', methods=['PUT'])
+@blp.route('/schedules/<int:id>', methods=['PUT'])
 def update_schedule_by_id(id):
     data = request.get_json()
     schedule = ScheduleModel.query.get(id)
@@ -84,7 +85,7 @@ def update_schedule_by_id(id):
     db.session.commit()
     return jsonify(schedule.to_json())
 
-@schedules_blueprint.route('/schedules/<int:id>', methods=['DELETE'])
+@blp.route('/schedules/<int:id>', methods=['DELETE'])
 def delete_schedule_by_id(id):
     schedule = ScheduleModel.query.get(id)
     db.session.delete(schedule)

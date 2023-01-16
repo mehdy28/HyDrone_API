@@ -1,16 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import  request, jsonify
 from db import db
 from models.analysis import AnalysisModel
 from schemas.schemas import AnalysisSchema
+from flask_smorest import Blueprint, abort
 
-analysis_blueprint = Blueprint('analysis', __name__)
+blp = Blueprint("analysis", __name__, description="Opertations on analysis")
 
-@analysis_blueprint.route('/analysis', methods=['GET'])
+
+@blp.route('/analysis', methods=['GET'])
 def get_analysis():
     analysis = AnalysisModel.query.all()
     return jsonify([analysis.to_json() for analysis in analysis])
 
-@analysis_blueprint.route('/analysis', methods=['POST'])
+@blp.route('/analysis', methods=['POST'])
 def create_analysis():
     data = request.get_json()
     new_analysis = AnalysisModel(
@@ -23,12 +25,12 @@ def create_analysis():
     db.session.commit()
     return jsonify(new_analysis.to_json())
 
-@analysis_blueprint.route('/analysis/<int:id>', methods=['GET'])
+@blp.route('/analysis/<int:id>', methods=['GET'])
 def get_analysis_by_id(id):
     analysis = AnalysisModel.query.get(id)
     return jsonify(analysis.to_json())
 
-@analysis_blueprint.route('/analysis/<int:id>', methods=['PUT'])
+@blp.route('/analysis/<int:id>', methods=['PUT'])
 def update_analysis_by_id(id):
     data = request.get_json()
     analysis = AnalysisModel.query.get(id)
@@ -39,7 +41,7 @@ def update_analysis_by_id(id):
     db.session.commit()
     return jsonify(analysis.to_json())
 
-@analysis_blueprint.route('/analysis/<int:id>', methods=['DELETE'])
+@blp.route('/analysis/<int:id>', methods=['DELETE'])
 def delete_analysis_by_id(id):
     analysis = AnalysisModel.query.get(id)
     db.session.delete(analysis)

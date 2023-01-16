@@ -1,16 +1,17 @@
-from flask import Blueprint, request, jsonify
+import uuid
+from flask import  request, jsonify
 from db import db
-
+from flask.views import MethodView
+from flask_smorest import Blueprint, abort
 from models import UserModel
 from schemas.schemas import UserSchema
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
+blp = Blueprint("users", __name__, description="Operations on users")
 
 
 
-user_blueprint = Blueprint('user', __name__)
-
-
-
-@user_blueprint.route('/users', methods=['GET'])
+@blp.route('/users', methods=['GET'])
 def get_users():
     # Get all users from the database
     users = UserModel.query.all()
@@ -21,7 +22,7 @@ def get_users():
 
     return jsonify(users_data)
 
-@user_blueprint.route('/users/<int:id>', methods=['GET'])
+@blp.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
     # Get the user by id
     user = UserModel.query.get(id)
@@ -36,7 +37,7 @@ def get_user(id):
 
     return jsonify(user_data)
 
-@user_blueprint.route('/users/<int:id>', methods=['PUT'])
+@blp.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     # Get the user by id
     user = UserModel.query.get(id)
@@ -60,10 +61,9 @@ def update_user(id):
     user_data = user_schema.dump(user)
     return jsonify(user_data)
 
-# user_blueprint.py
-# ...
 
-@user_blueprint.route('/users/<int:id>', methods=['DELETE'])
+
+@blp.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
     # Get the user by id
     user = UserModel.query.get(id)
